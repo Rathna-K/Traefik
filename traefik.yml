@@ -1,0 +1,40 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: traefik:latest
+    container_name: "traefik"
+    restart: always
+    environment:
+      - TZ=America/Indiana/Indianapolis
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      docker-network:
+        aliases:
+          - traefik
+    volumes:
+      - "./traefik_data/:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik_data/traefik.toml:/etc/traefik/traefik.toml"
+      - "./traefik_data/rules.toml:/etc/traefik/rules.toml"
+
+  whoami:
+    image: "containous/whoami"
+    container_name: "simple-service"
+    networks:
+      docker-network:
+        aliases:
+          - whoami    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami-insecure.rule=Host(`whoami.pi.local`)"
+      - "traefik.http.routers.whoami-insecure.entrypoints=web"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.pi.local`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+networks:
+  docker-network:
+    external: true
