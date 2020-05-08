@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: always
+    environment:
+      - TZ=America/Indiana/Indianapolis    
+    ports:
+      - 1883:1883
+    networks:
+      docker-network:
+        aliases:
+          - mosquitto
+    volumes:
+      - ./mosquitto_data/mosquitto-conf:/mosquitto/config
+      - ./mosquitto_data/mosquitto-data:/mosquitto/data
+volumes:
+  mosquitto-conf:
+  mosquitto-data:
+networks:
+  docker-network:
+    external: true
