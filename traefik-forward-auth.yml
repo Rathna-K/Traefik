@@ -1,0 +1,35 @@
+version: "3.3"
+
+services:
+  traefik-forward-auth:
+    image: thomseddon/traefik-forward-auth:2.1-arm
+    container_name: "oauth"
+    restart: always
+    environment:
+      - TZ=America/Indiana/Indianapolis
+      - DEFAULT_PROVIDER=oidc
+      - PROVIDERS_OIDC_ISSUER_URL=https://login.microsoftonline.com/${tenantid}/v2.0
+      - PROVIDERS_OIDC_CLIENT_ID=${clientid}
+      - PROVIDERS_OIDC_CLIENT_SECRET=${clientsecret}
+      - SECRET=${secret}
+      - DOMAIN=${domain}
+      - LOG_LEVEL=debug
+      - AUTH_HOST=${authhost}
+      - WHITELIST=${emailaddresesses}
+      - COOKIE_NAME=${cookiename}
+      - CSRF_COOKIE_NAME=${_csrf}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik-forward-auth.middlewares=auth
+      - traefik.http.routers.traefik-forward-auth.entrypoints=websecure
+      - traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181
+      - traefik.http.middlewares.auth.forwardauth.address=http://traefik-forward-auth:4181
+      - traefik.http.middlewares.auth.forwardauth.authresponseheaders=X-Forwarded-User
+    networks:
+      docker-network:
+        aliases:
+          - oauth
+
+networks:
+  docker-network:
+    external: true
